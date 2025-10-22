@@ -1,0 +1,58 @@
+--- Dependencies ---
+
+Ignore node_modules folders in both backend and frontend
+
+backend/node_modules/
+frontend/node_modules/
+
+--- Environment Variables ---
+
+Ignore the .env file in the backend
+
+backend/.env
+
+--- Build Output (Vite Frontend) ---
+
+Ignore the production build folder created by 'npm run build' in frontend
+
+frontend/build/
+
+Ignore Vite's cache directory
+
+frontend/.vite/
+
+--- Logs ---
+
+Ignore general log files and npm/yarn specific logs
+
+.log
+npm-debug.log
+yarn-debug.log*
+yarn-error.log*
+
+--- Operating System Files ---
+
+Ignore macOS specific files
+
+.DS_Store
+
+Ignore Windows specific files
+
+Thumbs.db
+
+--- IDE/Editor Specific Files ---
+
+Ignore VS Code specific settings/cache
+
+.vscode/
+
+Ignore JetBrains IDE specific files (WebStorm, IntelliJ IDEA, etc.)
+
+.idea/
+
+--- Other ---
+
+Ignore temporary files or potential sensitive files if generated
+
+*.tmp
+*.swp
