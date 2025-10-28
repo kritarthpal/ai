@@ -1,28 +1,43 @@
-// ... (imports and middleware setup) ...
+// --- 1. Import necessary packages ---
+const express = require('express');
+const mongoose = require('mongoose'); // <-- Mongoose is imported HERE
+const cors = require('cors');
+require('dotenv').config(); // This loads the variables from .env
 
-// Connect to MongoDB
-mongoose
-	.connect(process.env.MONGO_URI)
-	.then(() => {
-		console.log("MongoDB connected successfully."); // Original log
+// --- 2. Import routes ---
+const authRoutes = require('./auth');
+const chatRoutes = require('./chat');
 
-		// --- ADD THIS DELAY FOR TESTING ---
-		console.log("Waiting 3 seconds before starting server...");
-		setTimeout(() => {
-			// Start the server ONLY after the delay
-			app.listen(PORT, () => {
-				console.log(`Server is running on http://localhost:${PORT}`);
-			});
-		}, 3000); // 3000 milliseconds = 3 seconds
-		// --- END OF ADDED DELAY ---
-	})
-	.catch((err) => {
-		console.error("MongoDB connection error:", err);
-		// Optional: Exit if DB connection fails criticaly
-		// process.exit(1);
-	});
+// --- 3. Initialize the app ---
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-// --- REMOVE or COMMENT OUT the original app.listen here ---
-// app.listen(PORT, () => {
-//   console.log(`Server is running on http://localhost:${PORT}`);
-// });
+// --- 4. Middleware ---
+app.use(cors()); // Allows the frontend to talk to this backend
+app.use(express.json()); // Allows the server to accept JSON data
+
+// --- 5. Connect to MongoDB ---
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log('MongoDB connected successfully.');
+        // Start the server ONLY after the DB connection is successful
+        app.listen(PORT, () => {
+            console.log(`Server is running on http://localhost:${PORT}`);
+        });
+    })
+    .catch(err => {
+        console.error('MongoDB connection error:', err);
+        process.exit(1); // Exit the process if DB connection fails
+    });
+
+// --- 6. API Routes ---
+app.get('/', (req, res) => {
+    res.send('AI Mental Health API is running!');
+});
+
+// Use the authentication and chat routes
+app.use('/api/auth', authRoutes);
+app.use('/api/chat', chatRoutes);
+
+// --- NOTE: We moved app.listen inside the mongoose.connect().then() block ---
+
