@@ -1,7 +1,7 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("./User"); // This imports the model from User.js
+const User = require("./User"); // This imports the new User.js model
 require("dotenv").config();
 
 const router = express.Router();
@@ -10,16 +10,8 @@ const router = express.Router();
 // @desc    Register a user
 // @access  Public
 router.post("/register", async (req, res) => {
-	// We now expect all the new fields from the request body
-	const {
-		email,
-		password,
-		name,
-		age,
-		bloodGroup,
-		medicalInfo,
-		medicalHistory,
-	} = req.body;
+	// These fields now match your new User.js model
+	const { name, email, password, age, medicalHistory } = req.body;
 
 	try {
 		// Check if user already exists
@@ -28,14 +20,12 @@ router.post("/register", async (req, res) => {
 			return res.status(400).json({ msg: "User already exists" });
 		}
 
-		// Create a new user instance with all the new data
+		// Create a new user instance with the correct data
 		user = new User({
+			name,
 			email,
 			password,
-			name,
 			age,
-			bloodGroup,
-			medicalInfo,
 			medicalHistory,
 		});
 
@@ -45,6 +35,9 @@ router.post("/register", async (req, res) => {
 
 		// Save the complete user profile to the database
 		await user.save();
+
+		// --- FIX: Fetch the user *without* the password to send back ---
+		const userPayload = await User.findById(user.id).select("-password");
 
 		// Create and return a JSON Web Token (JWT) for authentication
 		const payload = {
@@ -56,14 +49,15 @@ router.post("/register", async (req, res) => {
 		jwt.sign(
 			payload,
 			process.env.JWT_SECRET,
-			{ expiresIn: "5h" },
+			{ expiresIn: "5h" }, // Changed to 5 hours
 			(err, token) => {
 				if (err) throw err;
-				res.json({ token });
+				// --- FIX: Send back token AND user object ---
+				res.json({ token, user: userPayload });
 			}
 		);
 	} catch (err) {
-		console.error(err.message);
+		console.error("Register error:", err.message);
 		res.status(500).send("Server Error");
 	}
 });
@@ -75,8 +69,8 @@ router.post("/login", async (req, res) => {
 	const { email, password } = req.body;
 
 	try {
-		// Check if user exists
-		let user = await User.findOne({ email });
+		// --- FIX 1: Fetch user *with* password to check credentials ---
+		const user = await User.findOne({ email });
 		if (!user) {
 			return res.status(400).json({ msg: "Invalid credentials" });
 		}
@@ -87,12 +81,15 @@ router.post("/login", async (req, res) => {
 			return res.status(400).json({ msg: "Invalid credentials" });
 		}
 
-		// Create and return a JSON Web Token (JWT)
+		// --- FIX 2: Create payload for JWT ---
 		const payload = {
 			user: {
 				id: user.id,
 			},
 		};
+
+		// --- FIX 3: Fetch user *without* password to send in response ---
+		const userPayload = await User.findById(user.id).select("-password");
 
 		jwt.sign(
 			payload,
@@ -100,11 +97,12 @@ router.post("/login", async (req, res) => {
 			{ expiresIn: "5h" },
 			(err, token) => {
 				if (err) throw err;
-				res.json({ token });
+				// --- FIX 4: Send back token AND user object ---
+				res.json({ token, user: userPayload });
 			}
 		);
 	} catch (err) {
-		console.error(err.message);
+		console.error("Login error:", err.message);
 		res.status(500).send("Server Error");
 	}
 });

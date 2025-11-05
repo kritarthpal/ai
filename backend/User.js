@@ -1,7 +1,12 @@
 const mongoose = require('mongoose');
 
-// This is the blueprint for a user in our database
+// This is the updated blueprint for a user in our "BAYMAX" project.
+// It now matches the fields in your new frontend/src/components/Register.tsx form.
 const UserSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
     email: {
         type: String,
         required: true,
@@ -11,30 +16,17 @@ const UserSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    name: {
-        type: String,
-        required: true
-    },
     age: {
         type: Number,
         required: true
     },
-    bloodGroup: {
-        type: String,
-        enum: ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'] // Restricts input to valid blood types
-    },
-    // For current allergies and important medical conditions
-    medicalInfo: {
-        type: String,
-        default: 'None'
-    },
-    // For past significant medical events or history
+    // This field comes from your new Register.tsx form
     medicalHistory: {
         type: String,
         default: 'None'
     }
 });
 
-// This line is crucial. It creates the model from the schema and makes it available to other files.
+// This line is crucial. It creates the model from the schema.
 module.exports = mongoose.model('User', UserSchema);
 
